@@ -1603,6 +1603,7 @@ variable, and edit properties. Have to do one variable at a time.</li>
 and verify table definition. Then you can import a CSV file into the
 table using the steps above.</p>
 <p>Repeat for multiple tables as needed.</p>
+<p>SQLite has 5 data types: INTERGER, TEXT, NUMERIC, REAL, BLOB. See: <a href="https://www.sqlite.org/datatype3.html" class="uri">https://www.sqlite.org/datatype3.html</a></p>
 </div>
 </div>
 <div id="submitting-queries" class="section level2">
@@ -3485,47 +3486,237 @@ GROUP BY state_code, quiz_points</code></pre>
 </table>
 </div>
 </div>
-</div>
-<div id="sql-essential-training" class="section level3">
-<h3>SQL Essential Training</h3>
-<pre class="r"><code>library(DBI)
-db &lt;- dbConnect(RSQLite::SQLite(), &quot;homes.db&quot;)</code></pre>
-<pre class="sql"><code>select LotSize, TotalValue from parcels 
-where LotSize &gt; 500 
-limit 5;</code></pre>
+<div id="example-of-compound-select" class="section level4">
+<h4>Example of compound select</h4>
+<p>Sometimes we need to use more than one select statement to get the
+information we want. It’s often the case that we want to set up a query
+that relies on the result of another query. Using a secondary select
+statement inside of another query is called a sub-query or sub-select,
+and it helps us to narrow down or zero in on a specific set of data to
+use in that larger query.</p>
+<p>Get a listing of all the people in our database who achieved the
+highest score on our quiz.</p>
+<pre class="sql"><code>SELECT first_name, last_name, quiz_points 
+FROM people 
+WHERE quiz_points=(SELECT MAX(quiz_points) FROM people);</code></pre>
 <div class="knitsql-table">
 <table>
-<caption>5 records</caption>
+<caption>6 records</caption>
 <thead>
 <tr class="header">
-<th align="right">LotSize</th>
-<th align="right">TotalValue</th>
+<th align="left">first_name</th>
+<th align="left">last_name</th>
+<th align="right">quiz_points</th>
 </tr>
 </thead>
 <tbody>
 <tr class="odd">
-<td align="right">528.000</td>
-<td align="right">1019500</td>
+<td align="left">Scott</td>
+<td align="left">Thompson</td>
+<td align="right">100</td>
 </tr>
 <tr class="even">
-<td align="right">14890.090</td>
-<td align="right">16130900</td>
+<td align="left">Catherine</td>
+<td align="left">Rodriguez</td>
+<td align="right">100</td>
 </tr>
 <tr class="odd">
-<td align="right">1521.853</td>
-<td align="right">7407700</td>
+<td align="left">Kathryn</td>
+<td align="left">Welch</td>
+<td align="right">100</td>
 </tr>
 <tr class="even">
-<td align="right">836.590</td>
-<td align="right">8374000</td>
+<td align="left">Terry</td>
+<td align="left">Fernandez</td>
+<td align="right">100</td>
 </tr>
 <tr class="odd">
-<td align="right">564.420</td>
-<td align="right">2409900</td>
+<td align="left">Earl</td>
+<td align="left">Green</td>
+<td align="right">100</td>
+</tr>
+<tr class="even">
+<td align="left">Julia</td>
+<td align="left">Lee</td>
+<td align="right">100</td>
 </tr>
 </tbody>
 </table>
 </div>
+<p>Find all people from Minnesota without knowing state
+abbreviation.</p>
+<pre class="sql"><code>SELECT * FROM people 
+WHERE state_code=(SELECT state_abbrev FROM states WHERE state_name=&#39;Minnesota&#39;);</code></pre>
+<div class="knitsql-table">
+<table>
+<caption>Displaying records 1 - 10</caption>
+<colgroup>
+<col width="6%" />
+<col width="7%" />
+<col width="7%" />
+<col width="9%" />
+<col width="7%" />
+<col width="8%" />
+<col width="8%" />
+<col width="11%" />
+<col width="7%" />
+<col width="2%" />
+<col width="22%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th align="right">id_number</th>
+<th align="left">first_name</th>
+<th align="left">last_name</th>
+<th align="left">city</th>
+<th align="left">state_code</th>
+<th align="left">shirt_or_hat</th>
+<th align="right">quiz_points</th>
+<th align="left">team</th>
+<th align="left">signup</th>
+<th align="right">age</th>
+<th align="left">company</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="right">78</td>
+<td align="left">Roy</td>
+<td align="left">Rivera</td>
+<td align="left">Minneapolis</td>
+<td align="left">MN</td>
+<td align="left">shirt</td>
+<td align="right">81</td>
+<td align="left">Baffled Badgers</td>
+<td align="left">2021-01-03</td>
+<td align="right">47</td>
+<td align="left">Hayes, Greenfelder and Schulist</td>
+</tr>
+<tr class="even">
+<td align="right">150</td>
+<td align="left">Joan</td>
+<td align="left">Watkins</td>
+<td align="left">Minneapolis</td>
+<td align="left">MN</td>
+<td align="left">hat</td>
+<td align="right">85</td>
+<td align="left">Baffled Badgers</td>
+<td align="left">2021-01-05</td>
+<td align="right">23</td>
+<td align="left">Morissette Ltd.</td>
+</tr>
+<tr class="odd">
+<td align="right">253</td>
+<td align="left">Darren</td>
+<td align="left">Phillips</td>
+<td align="left">Minneapolis</td>
+<td align="left">MN</td>
+<td align="left">hat</td>
+<td align="right">85</td>
+<td align="left">Cosmic Cobras</td>
+<td align="left">2021-01-08</td>
+<td align="right">53</td>
+<td align="left">NA</td>
+</tr>
+<tr class="even">
+<td align="right">288</td>
+<td align="left">Antonio</td>
+<td align="left">Hart</td>
+<td align="left">Young America</td>
+<td align="left">MN</td>
+<td align="left">shirt</td>
+<td align="right">85</td>
+<td align="left">Baffled Badgers</td>
+<td align="left">2021-01-09</td>
+<td align="right">30</td>
+<td align="left">Feest Inc</td>
+</tr>
+<tr class="odd">
+<td align="right">415</td>
+<td align="left">Louis</td>
+<td align="left">Cox</td>
+<td align="left">Young America</td>
+<td align="left">MN</td>
+<td align="left">hat</td>
+<td align="right">90</td>
+<td align="left">Cosmic Cobras</td>
+<td align="left">2021-01-13</td>
+<td align="right">45</td>
+<td align="left">Mitchell-Nolan</td>
+</tr>
+<tr class="even">
+<td align="right">452</td>
+<td align="left">Chris</td>
+<td align="left">Castillo</td>
+<td align="left">Duluth</td>
+<td align="left">MN</td>
+<td align="left">shirt</td>
+<td align="right">76</td>
+<td align="left">Angry Ants</td>
+<td align="left">2021-01-14</td>
+<td align="right">25</td>
+<td align="left">NA</td>
+</tr>
+<tr class="odd">
+<td align="right">458</td>
+<td align="left">Ashley</td>
+<td align="left">Fisher</td>
+<td align="left">Saint Paul</td>
+<td align="left">MN</td>
+<td align="left">shirt</td>
+<td align="right">79</td>
+<td align="left">Angry Ants</td>
+<td align="left">2021-01-15</td>
+<td align="right">38</td>
+<td align="left">Keeling Ltd.</td>
+</tr>
+<tr class="even">
+<td align="right">543</td>
+<td align="left">Harry</td>
+<td align="left">Welch</td>
+<td align="left">Rochester</td>
+<td align="left">MN</td>
+<td align="left">hat</td>
+<td align="right">92</td>
+<td align="left">Baffled Badgers</td>
+<td align="left">2021-01-17</td>
+<td align="right">27</td>
+<td align="left">Wehner Group</td>
+</tr>
+<tr class="odd">
+<td align="right">570</td>
+<td align="left">Martin</td>
+<td align="left">Richardson</td>
+<td align="left">Minneapolis</td>
+<td align="left">MN</td>
+<td align="left">hat</td>
+<td align="right">87</td>
+<td align="left">Baffled Badgers</td>
+<td align="left">2021-01-18</td>
+<td align="right">24</td>
+<td align="left">Ortiz, Lubowitz and Brekke</td>
+</tr>
+<tr class="even">
+<td align="right">576</td>
+<td align="left">Cynthia</td>
+<td align="left">Carroll</td>
+<td align="left">Monticello</td>
+<td align="left">MN</td>
+<td align="left">hat</td>
+<td align="right">82</td>
+<td align="left">Baffled Badgers</td>
+<td align="left">2021-01-18</td>
+<td align="right">24</td>
+<td align="left">Stracke Ltd.</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+</div>
+<div id="sql-essential-training" class="section level3">
+<h3>SQL Essential Training</h3>
+<p>To do</p>
 </div>
 </div>
 
