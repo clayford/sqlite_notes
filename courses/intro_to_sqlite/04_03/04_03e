@@ -1,0 +1,1 @@
+python -m mqttstore -v sqlite -c mqttstore.conf --file ./mqtt.sqlite

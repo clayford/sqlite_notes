@@ -1,0 +1,1 @@
+SELECT * FROM analog_readings ORDER BY time DESC LIMIT 10;

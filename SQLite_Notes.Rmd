@@ -1,0 +1,483 @@
+---
+title: "SQLite Notes"
+author: "Clay Ford"
+date: "2023-07-06"
+output:
+  html_document:
+    toc: true
+    toc_float: true
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, comment = "")
+```
+
+## About SQLite
+
+- SQLite is an effective solution for data too large for RAM but small enough to fit on a local hard drive. 
+- SQLite is _serverless_ unlike client/server databases such as MySQL, PostgreSQL, SQL Server, and Oracle. SQLite does not need to be "installed" before it is used. There is no "setup" procedure. 
+- A SQLite database is a single ordinary disk file that can be located anywhere in the directory hierarchy.
+- SQLite is a distinct SQL implementation. SQL code you find online to accomplish a task may not work in SQLite. For example, SQLite has no `DATETIME` datatype.
+
+## Installing SQLite
+
+### Windows
+
+1. Go to https://www.sqlite.org/download.html and download the 64-bit DLL and the command-line tools bundle. 
+2. Extract files and copy into a new folder. Suggestion: copy into a folder you create called "SQLite" at the top level of the C drive or root directory.
+3. Add SQLite directory to path: (Win 10) Control Panel > User Accounts > User Accounts, go to "Change my environment variables", click Path, click Edit, Click New, add `C:\SQLite` entry, OK, OK.
+
+### Macs
+
+Macs should already have SQLite installed.
+
+## Running SQLite from command line
+
+- Open terminal or cmd.exe and enter `sqlite3` followed by name of database you wish to open.
+- Running `sqlite3` by itself creates a transient in-memory database.
+- The [Introduction to SQLite](https://www.linkedin.com/learning/introduction-to-sqlite?u=2203468) (Jan 2023) course by Brian Jepson on LinkedIn Learning teaches SQLite using the command line.
+- SQLite provides special commands to sqlite3 called "dot-commands": https://www.sqlite.org/cli.html
+- `.tables` shows all tables in current database
+- `.exit` exits SQLite
+
+## SQLite GUI interfaces
+
+- There are programs available that provide a GUI to make it easier to browse database tables, write SQL syntax, etc.
+- Two that I have used:
+    * [SQLiteStudio](https://sqlitestudio.pl/)
+    * [DB Browser for SQLite](https://sqlitebrowser.org/)
+
+- Both install SQLite when installed. However they tend to use older versions of SQLite.
+- DB Browser for SQLite is similar to RStudio in that you can write SQL syntax and click Ctrl + Enter to submit and execute code. 
+- The [Learning SQL Programming](https://www.linkedin.com/learning/learning-sql-programming-8382385?u=2203468) (March 2021) course by Scott Simpson on LinkedIn Learning teaches SQLite using DB Browser for SQLite.
+- The [SQL Essential Training](https://www.linkedin.com/learning/learning-sql-programming-8382385?u=2203468) (Dec 2019) course by Bill Weinman on LinkedIn Learning teaches SQLite using SQLiteStudio.
+
+## Creating a database
+
+- Using command line: navigate to where you want to create database and enter `sqlite3 name_of_database.db`
+- Using DB Browser for SQLite: File...New Database..., browse to where you want to create database, enter name, and hit Enter.
+
+Next you need to add tables to the database. 
+
+## Creating tables
+
+### By import, no existing table
+
+If you have data in a CSV file and no existing table, you can do the following from the `sqlite3` command line:   
+
+```
+sqlite> .mode csv
+sqlite> .import file.csv table_name
+```
+
+This will import the contents of the CSV file into a new table called "table_name". This seems to import everything as TEXT. 
+
+To edit table schema using GUIs:
+
+- DB Browser for SQLite: Click on table, click Modify Table button, and edit properties. Can modify multiple variables at once.
+- SQLiteStudio: go to Table, go to Structure tab, doubleclick on variable, and edit properties. Have to do one variable at a time.
+
+### Create empty table
+
+You can also define a table and then populate it. Text preceded with `--` below are comments.
+
+Example of creating an empty table:
+
+```
+CREATE TABLE t1
+  (id  INTEGER,   -- variable name followed by storage type
+    y   NUMERIC,
+    x1  INTEGER,
+    x2  REAL,   
+    x3  TEXT);
+```
+
+Can use `.schema` command at SQLite command line to view and verify table definition. 
+Then you can import a CSV file into the table using the steps above.
+
+Repeat for multiple tables as needed.
+
+SQLite has 5 data types: INTERGER, TEXT, NUMERIC, REAL, BLOB. See: https://www.sqlite.org/datatype3.html
+
+## Submitting queries
+
+- Queries can be submitted one at a time from SQLite command line or using the GUIs. 
+- Multiple queries can be written/saved as txt in a .sql file.
+- In DB Browser for SQLite: go to Execute SQL tab, write query, and hit Ctrl + Enter
+- In SQLiteStudio: Open SQL Editor (Tools...Open SQL Editor), write query, and hit F9
+- The DB Browser for SQLite editor provides code completion, which is very handy.
+- DB Browser for SQLite makes it easy to export a query result to CSV. Click on "Save the Results View" button and select "Export to CSV"
+
+## Connect to SQLite db - R
+
+The RSQLite package provides an interface to SQLite databases. Per the RSQLite vignette: _"RSQLite is a DBI-compatible interface which means you primarily use functions defined in the DBI package, so you should always start by loading DBI, not RSQLite."_
+
+Here's an example of accessing a SQLite database called "homes" that contains real estate data from Albemarle County in Virginia, USA. We query the parcels table for records where LotSize is greater than 500 acres. The query is issued as a text string using the `dbGetQuery()` function. The result is saved as `d`, a data frame, which has 56 rows and 32 variables.
+
+```{r}
+library(DBI)
+mydb <- dbConnect(RSQLite::SQLite(), "homes.db")
+d <- dbGetQuery(mydb, 'select * from parcels where LotSize > 500;')
+dim(d)
+class(d)
+```
+
+It's good practice to close the database connection when finished. "This closes the connection, discards all pending work, and frees resources (e.g., memory, sockets)." (see `?dbDisconnect`)
+
+```{r}
+dbDisconnect(mydb)
+```
+
+## Connect to SQLite db - Python
+
+The [sqlite3](https://docs.python.org/3/library/sqlite3.html) module provides an interface to SQLite databases.
+
+Below we replicate the example from the R section above using the pandas function `read_sql_query()`. The result is a pandas data frame with 56 rows and 32 variables.
+
+```{python}
+import pandas as pd
+import sqlite3
+con = sqlite3.connect("homes.db")
+df = pd.read_sql_query("select * from parcels where LotSize > 500;", con)
+df.shape
+```
+
+It's good practice to close the database connection when finished.
+
+```{python}
+con.close()
+```
+
+
+## Example queries/SQL code
+
+These examples come from LinkedIn courses.
+
+### Introduction to SQLite
+
+```{r}
+chinook <- dbConnect(RSQLite::SQLite(), "courses/intro_to_sqlite/Chinook_Learning_Sqlite.sqlite")
+```
+
+Select 10 records from Invoice table, only show first 10.
+
+```{sql connection=chinook}
+SELECT * FROM Invoice LIMIT 10;
+```
+
+To output query result to csv file using sqlite3 command line, run the following:
+
+```
+.mode csv
+.header on
+.output filename.csv 
+```
+Output of next query is sent to `filename.csv`
+
+To restore default output:
+
+```
+.output stdout
+.mode list
+
+```
+To see file from sqlite3 command line:
+
+```
+.shell filename.csv
+```
+
+#### Examples of using WHERE clause
+
+```{sql connection=chinook}
+SELECT * FROM Genre WHERE name LIKE 'S%';
+```
+
+```{sql connection=chinook}
+SELECT * FROM Invoice WHERE Total > 10;
+```
+
+```{sql connection=chinook}
+SELECT *
+FROM Invoice
+WHERE Total > 10
+AND InvoiceDate BETWEEN '2024-01-01' AND '2024-03-31';
+```
+
+```{sql connection=chinook}
+SELECT * FROM Genre WHERE LOWER(Name) = 'rock';
+```
+
+```{sql connection=chinook}
+SELECT * FROM Genre WHERE LOWER(Name) LIKE '%rock%';
+```
+
+#### Examples of queries in aggregate. 
+
+See also: https://sqlite.org/lang_aggfunc.html
+
+Sum of Total, returned as OverallTotal.
+
+```{sql connection=chinook}
+SELECT SUM(Total) AS OverallTotal
+FROM Invoice;
+```
+
+Sum of Total by InvoiceDate.
+
+```{sql connection=chinook}
+SELECT InvoiceDate, SUM(Total) AS DailyTotal
+FROM Invoice
+GROUP BY InvoiceDate;
+```
+
+Sum of Total by InvoiceDate, sorted by InvoiceDate.
+
+```{sql connection=chinook}
+SELECT InvoiceDate, SUM(Total) AS DailyTotal
+FROM Invoice
+GROUP BY InvoiceDate
+ORDER BY InvoiceDate;
+```
+
+Sum of Total by InvoiceDate, sorted by InvoiceDate in descending order.
+
+```{sql connection=chinook}
+SELECT InvoiceDate, SUM(Total) AS DailyTotal
+FROM Invoice
+GROUP BY InvoiceDate
+ORDER BY SUM(Total) DESC;
+```
+
+Sum of Total by InvoiceDate having total > 10, sorted by InvoiceDate in descending order.
+
+```{sql connection=chinook}
+SELECT InvoiceDate, SUM(Total) AS DailyTotal
+FROM Invoice
+GROUP BY InvoiceDate
+HAVING SUM(Total) > 10
+ORDER BY SUM(Total) DESC;
+```
+
+Sum of Total and count of Invoices by InvoiceDate and Customer ID
+
+```{sql connection=chinook}
+SELECT InvoiceDate,
+       CustomerId,
+       SUM(Total) AS DailyTotal,
+       COUNT(InvoiceId) AS InvoiceCount
+FROM Invoice
+GROUP BY InvoiceDate, CustomerId;
+```
+
+#### Examples of JOINS
+
+**Inner join**: Get the count of invoice IDs for every customer who has a company name associated with their record in the customer table. The WHERE company is NOT NULL clause takes care of only selecting customers with company names. 
+
+```{sql connection=chinook}
+SELECT Company, COUNT(InvoiceID)
+FROM Customer
+JOIN Invoice ON Invoice.CustomerId = Customer.CustomerId
+WHERE Company IS NOT NULL
+GROUP BY Company;
+```
+
+**Left Join**: Get results even if customer ID values fall outside of the intersection. So in the case of a customer that has no matching invoice records, such as LinkedIn, the invoice columns are represented as NULLS, and so the COUNT invoice ID calculation returns zero.
+
+
+```{sql connection=chinook}
+SELECT Company, COUNT(InvoiceID)
+FROM Customer
+LEFT OUTER JOIN Invoice ON Invoice.CustomerId = Customer.CustomerId
+WHERE Company IS NOT NULL
+GROUP BY Company;
+```
+
+#### Examples of basic functions
+
+```{sql connection=chinook}
+SELECT ROUND(1.2345678, 3);
+```
+
+
+```{sql connection=chinook}
+SELECT INSTR(BillingAddress, ' ') FROM Invoice LIMIT 5;
+```
+
+```{sql connection=chinook}
+SELECT SUBSTR(BillingAddress, 0, INSTR(BillingAddress, ' '))
+FROM Invoice LIMIT 5;
+```
+
+```{sql connection=chinook}
+SELECT FORMAT('$%f', SUM(Total)) FROM Invoice;
+```
+
+
+```{sql connection=chinook}
+SELECT FORMAT('$%.2f', SUM(Total)) FROM Invoice;
+```
+
+
+```{sql connection=chinook}
+SELECT InvoiceDate, strftime('%Y-%m-%d', InvoiceDate)
+FROM Invoice LIMIT 10;
+```
+
+#### Example of aggregate functions
+
+Count number of rows.
+
+```{sql connection=chinook}
+SELECT COUNT(*) FROM Invoice;
+```
+
+Count number of non Null values for a given column.
+
+```{sql connection=chinook}
+SELECT COUNT(BillingPostalCode) FROM Invoice;
+```
+
+Number of distinct postal codes in Invoice table
+
+```{sql connection=chinook}
+SELECT COUNT(DISTINCT BillingPostalCode) FROM Invoice;
+```
+
+Number of customers in each country.
+
+```{sql connection=chinook}
+SELECT Country,
+       COUNT(DISTINCT CustomerId) AS num
+FROM Customer
+GROUP BY Country;
+```
+
+Average of previouq query
+
+```{sql connection=chinook}
+SELECT AVG(num)
+FROM (SELECT Country,
+             COUNT(DISTINCT CustomerId) AS num
+      FROM Customer
+      GROUP BY Country
+);
+```
+
+Get min and max as well.
+
+```{sql connection=chinook}
+SELECT AVG(num) AS avg_num,
+       MIN(num) AS min_num,
+       MAX(num) AS max_num
+FROM (SELECT Country,
+             COUNT(DISTINCT CustomerId) AS num
+      FROM Customer
+      GROUP BY Country
+);
+```
+
+Another handy aggregate function is `group_concat`. You can use this to produce a comma separated list of aggregate values.
+
+```{sql connection=chinook}
+SELECT Country,
+       GROUP_CONCAT(DISTINCT State) AS States
+FROM Customer
+GROUP BY Country;
+```
+
+
+### Learning SQL Programming
+
+```{r}
+quizdata <- dbConnect(RSQLite::SQLite(), "courses/learning_sql_programming/quizdata.db")
+```
+
+#### More examples of JOIN
+
+Let's join up our quiz participants' names and state abbreviations with the full state name from the states table. 
+
+```{sql connection=quizdata}
+SELECT people.first_name, people.last_name, people.state_code, states.state_name 
+FROM people 
+JOIN states 
+ON people.state_code=states.state_abbrev;
+```
+
+We can switch up the order that we're joining the tables too, and we'll see that we get a different order of records. I'll switch the states and people tables here around the join keyword. 
+
+```{sql connection=quizdata}
+SELECT people.first_name, people.last_name, people.state_code, states.state_name 
+FROM states 
+JOIN people 
+ON people.state_code=states.state_abbrev;
+```
+
+Now that the states table is on the left and the people table is on the right, let's switch this to a left join so we get all of the records from the states table instead of just the ones that match. (No quiz participants from WY.)
+
+```{sql connection=quizdata}
+SELECT people.first_name, people.last_name, people.state_code, states.state_name 
+FROM states 
+LEFT JOIN people 
+ON people.state_code=states.state_abbrev;
+```
+
+Let's write a query to match up the state abbreviations and the people table with those in the states table so we can see what else is missing. I don't need all these rows, so I'll use the distinct function to throw out duplicates and reduce the size of our result. 
+
+```{sql connection=quizdata}
+SELECT DISTINCT(people.state_code), states.state_name 
+FROM states 
+LEFT JOIN people ON people.state_code=states.state_abbrev
+ORDER BY people.state_code;
+```
+
+#### Example of grouping results
+
+How many times each first name appears in the table.
+
+```{sql connection=quizdata}
+SELECT first_name, COUNT(first_name) 
+FROM people 
+GROUP BY first_name;
+```
+
+How many participants come from each state.
+
+```{sql connection=quizdata}
+SELECT state_code, COUNT(state_code) 
+FROM people 
+GROUP BY state_code;
+```
+
+How many people each state got each score.
+
+```{sql connection=quizdata}
+SELECT state_code, quiz_points, COUNT(quiz_points)
+FROM people
+GROUP BY state_code, quiz_points
+```
+
+#### Example of compound select
+
+Sometimes we need to use more than one select statement to get the information we want. It's often the case that we want to set up a query that relies on the result of another query. Using a secondary select statement inside of another query is called a sub-query or sub-select, and it helps us to narrow down or zero in on a specific set of data to use in that larger query.
+
+Get a listing of all the people in our database who achieved the highest score on our quiz.
+
+```{sql connection=quizdata}
+SELECT first_name, last_name, quiz_points 
+FROM people 
+WHERE quiz_points=(SELECT MAX(quiz_points) FROM people);
+```
+
+Find all people from Minnesota without knowing state abbreviation.
+
+```{sql connection=quizdata}
+SELECT * FROM people 
+WHERE state_code=(SELECT state_abbrev FROM states WHERE state_name='Minnesota');
+```
+
+
+
+### SQL Essential Training
+
+To do
