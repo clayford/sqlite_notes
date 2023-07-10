@@ -480,4 +480,216 @@ WHERE state_code=(SELECT state_abbrev FROM states WHERE state_name='Minnesota');
 
 ### SQL Essential Training
 
-To do
+This course uses three databases:
+
+1. album
+2. test
+3. world
+
+```{r}
+album <- dbConnect(RSQLite::SQLite(),
+                   "courses/sql_essential_training/album.db")
+test <- dbConnect(RSQLite::SQLite(), 
+                  "courses/sql_essential_training/test.db")
+world <- dbConnect(RSQLite::SQLite(),
+                   "courses/sql_essential_training/world.db")
+```
+
+Quick `SELECT` example.
+
+```{sql connection=world}
+SELECT Name, LifeExpectancy AS "Life Expectancy" 
+FROM Country ORDER BY Name;
+```
+
+Get second five after first five
+
+```{sql connection=world}
+SELECT Name, Continent, Region 
+FROM Country 
+WHERE Continent = 'Europe'   -- which rows
+ORDER BY Name LIMIT 5 OFFSET 5;  -- only 5, second 5
+```
+
+Counting Rows
+
+`COUNT(*)` means count all the rows. Count number of rows where pop > 100,000,000 and Continent = 'Europe' 
+
+```{sql connection=world}
+SELECT COUNT(*) FROM Country WHERE Population > 100000000 AND Continent = 'Europe' ;
+```
+
+`COUNT(LifeExpectancy)` means count rows where the column has data. 
+
+```{sql connection=world}
+SELECT COUNT(LifeExpectancy) FROM Country;
+```
+
+Countries with pop < 100000 or pop is NULL, listed in descending order by population.
+
+```{sql connection=world}
+SELECT Name, Continent, Population FROM Country 
+  WHERE Population < 100000 OR Population IS NULL ORDER BY Population DESC;
+```
+
+Countries with pop < 100000 and Continent = 'Oceania', listed in descending order by population.
+
+```{sql connection=world}
+SELECT Name, Continent, Population FROM Country 
+  WHERE Population < 100000 AND Continent = 'Oceania' ORDER BY Population DESC;
+```
+
+`LIKE` operator: percent sign is a wildcard; find Names that have anything anything before or after 'island'
+
+```{sql connection=world}
+SELECT Name, Continent, Population FROM Country 
+  WHERE Name LIKE '%island%' ORDER BY Name;
+```
+
+`LIKE` operator: all countries with 'a' as second letter  
+
+```{sql connection=world}
+SELECT Name, Continent, Population FROM Country 
+  WHERE Name LIKE '_a%' ORDER BY Name;
+```
+
+`IN` operator: all countries in Asia or Europe
+
+```{sql connection=world}
+SELECT Name, Continent, Population FROM Country 
+ WHERE Continent IN ( 'Europe', 'Asia' ) ORDER BY Name;
+```
+
+`SELECT DISTINCT`: Using the `SELECT DISTINCT` statement, you will get only unique results.
+
+```{sql connection=world}
+SELECT DISTINCT Continent FROM Country;
+```
+
+Ordering output. Order by Continent in descending order, then within Continent show Region in ascending order, and within Region show Name in ascending order.
+
+```{sql connection=world}
+SELECT Name, Continent, Region 
+FROM Country 
+ORDER BY Continent DESC, Region, Name;
+```
+
+Example of a junction table.
+
+```{sql connection=test}
+SELECT c.name AS Cust, c.zip, i.name AS Item, i.description, s.quantity AS Quan, s.price AS Price
+  FROM sale AS s
+  JOIN item AS i ON s.item_id = i.id
+  JOIN customer AS c ON s.customer_id = c.id
+  ORDER BY Cust, Item
+;
+```
+ 
+Example of aggregate functions. Count of rows by Region.
+
+```{sql connection=world}
+SELECT Region, COUNT(*)
+  FROM Country
+  GROUP BY Region
+;
+```
+
+```{sql connection=world}
+SELECT Region, COUNT(*) AS Count  -- with alias
+  FROM Country
+  GROUP BY Region
+  ORDER BY Count DESC, Region  -- count in descending order
+;
+```
+
+
+```{sql connection=album}
+-- number of tracks for each album
+SELECT a.title AS Album, COUNT(t.track_number) as Tracks
+  FROM track AS t
+  JOIN album AS a
+    ON a.id = t.album_id
+  GROUP BY a.id
+  ORDER BY Tracks DESC, Album
+;
+```
+
+Just albums with 10 more tracks.
+
+```{sql connection=album}
+-- HAVING is for aggregate data
+SELECT a.title AS Album, COUNT(t.track_number) as Tracks
+  FROM track AS t
+  JOIN album AS a
+    ON a.id = t.album_id
+  GROUP BY a.id
+  HAVING Tracks >= 10
+  ORDER BY Tracks DESC, Album
+;
+```
+
+Albums with 10 or more tracks by the Beatles.
+
+```{sql connection=album}
+-- WHERE is for non-aggregate data
+SELECT a.title AS Album, COUNT(t.track_number) as Tracks
+  FROM track AS t
+  JOIN album AS a
+    ON a.id = t.album_id
+  WHERE a.artist = 'The Beatles'
+  GROUP BY a.id
+  HAVING Tracks >= 10
+  ORDER BY Tracks DESC, Album
+  ;
+```
+
+More aggregate functions.
+
+```{sql connection=world}
+SELECT Region, AVG(Population) 
+FROM Country 
+GROUP BY Region;
+```
+
+```{sql connection=world}
+SELECT Region, MIN(Population), MAX(Population) 
+  FROM Country 
+  GROUP BY Region;
+```
+
+Count of distinct heads of states.
+
+```{sql connection=world}
+SELECT COUNT(DISTINCT HeadOfState) FROM Country;
+```
+
+Example of a subselect. 
+
+Which albums have tracks that are less than 90 seconds? Only shows album IDs.
+
+```{sql connection=album}
+SELECT DISTINCT album_id FROM track WHERE duration <= 90;
+```
+
+Use above select statement as a subselect. Note the use of parentheses and the IN operator.
+
+```{sql connection=album}
+SELECT * FROM album
+  WHERE id IN (SELECT DISTINCT album_id FROM track WHERE duration <= 90)
+;
+```
+
+
+```{sql connection=album}
+SELECT a.title AS album, a.artist, t.track_number AS seq, t.title, t.duration AS secs
+  FROM album AS a
+  JOIN (
+    SELECT DISTINCT album_id, track_number, duration, title
+      FROM track
+      WHERE duration <= 90
+  ) AS t
+    ON t.album_id = a.id
+  ORDER BY a.title, t.track_number
+;
+```
+

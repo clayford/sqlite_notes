@@ -3716,7 +3716,1145 @@ WHERE state_code=(SELECT state_abbrev FROM states WHERE state_name=&#39;Minnesot
 </div>
 <div id="sql-essential-training" class="section level3">
 <h3>SQL Essential Training</h3>
-<p>To do</p>
+<p>This course uses three databases:</p>
+<ol style="list-style-type: decimal">
+<li>album</li>
+<li>test</li>
+<li>world</li>
+</ol>
+<pre class="r"><code>album &lt;- dbConnect(RSQLite::SQLite(),
+                   &quot;courses/sql_essential_training/album.db&quot;)
+test &lt;- dbConnect(RSQLite::SQLite(), 
+                  &quot;courses/sql_essential_training/test.db&quot;)
+world &lt;- dbConnect(RSQLite::SQLite(),
+                   &quot;courses/sql_essential_training/world.db&quot;)</code></pre>
+<p>Quick <code>SELECT</code> example.</p>
+<pre class="sql"><code>SELECT Name, LifeExpectancy AS &quot;Life Expectancy&quot; 
+FROM Country ORDER BY Name;</code></pre>
+<div class="knitsql-table">
+<table>
+<caption>Displaying records 1 - 10</caption>
+<thead>
+<tr class="header">
+<th align="left">Name</th>
+<th align="right">Life Expectancy</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="left">Afghanistan</td>
+<td align="right">45.9</td>
+</tr>
+<tr class="even">
+<td align="left">Albania</td>
+<td align="right">71.6</td>
+</tr>
+<tr class="odd">
+<td align="left">Algeria</td>
+<td align="right">69.7</td>
+</tr>
+<tr class="even">
+<td align="left">American Samoa</td>
+<td align="right">75.1</td>
+</tr>
+<tr class="odd">
+<td align="left">Andorra</td>
+<td align="right">83.5</td>
+</tr>
+<tr class="even">
+<td align="left">Angola</td>
+<td align="right">38.3</td>
+</tr>
+<tr class="odd">
+<td align="left">Anguilla</td>
+<td align="right">76.1</td>
+</tr>
+<tr class="even">
+<td align="left">Antarctica</td>
+<td align="right">NA</td>
+</tr>
+<tr class="odd">
+<td align="left">Antigua and Barbuda</td>
+<td align="right">70.5</td>
+</tr>
+<tr class="even">
+<td align="left">Argentina</td>
+<td align="right">75.1</td>
+</tr>
+</tbody>
+</table>
+</div>
+<p>Get second five after first five</p>
+<pre class="sql"><code>SELECT Name, Continent, Region 
+FROM Country 
+WHERE Continent = &#39;Europe&#39;   -- which rows
+ORDER BY Name LIMIT 5 OFFSET 5;  -- only 5, second 5</code></pre>
+<div class="knitsql-table">
+<table>
+<caption>5 records</caption>
+<thead>
+<tr class="header">
+<th align="left">Name</th>
+<th align="left">Continent</th>
+<th align="left">Region</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="left">Bosnia and Herzegovina</td>
+<td align="left">Europe</td>
+<td align="left">Southern Europe</td>
+</tr>
+<tr class="even">
+<td align="left">Bulgaria</td>
+<td align="left">Europe</td>
+<td align="left">Eastern Europe</td>
+</tr>
+<tr class="odd">
+<td align="left">Croatia</td>
+<td align="left">Europe</td>
+<td align="left">Southern Europe</td>
+</tr>
+<tr class="even">
+<td align="left">Czech Republic</td>
+<td align="left">Europe</td>
+<td align="left">Eastern Europe</td>
+</tr>
+<tr class="odd">
+<td align="left">Denmark</td>
+<td align="left">Europe</td>
+<td align="left">Nordic Countries</td>
+</tr>
+</tbody>
+</table>
+</div>
+<p>Counting Rows</p>
+<p><code>COUNT(*)</code> means count all the rows. Count number of rows
+where pop &gt; 100,000,000 and Continent = ‘Europe’</p>
+<pre class="sql"><code>SELECT COUNT(*) FROM Country WHERE Population &gt; 100000000 AND Continent = &#39;Europe&#39; ;</code></pre>
+<div class="knitsql-table">
+<table>
+<caption>1 records</caption>
+<thead>
+<tr class="header">
+<th align="right">COUNT(*)</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="right">1</td>
+</tr>
+</tbody>
+</table>
+</div>
+<p><code>COUNT(LifeExpectancy)</code> means count rows where the column
+has data.</p>
+<pre class="sql"><code>SELECT COUNT(LifeExpectancy) FROM Country;</code></pre>
+<div class="knitsql-table">
+<table>
+<caption>1 records</caption>
+<thead>
+<tr class="header">
+<th align="right">COUNT(LifeExpectancy)</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="right">222</td>
+</tr>
+</tbody>
+</table>
+</div>
+<p>Countries with pop &lt; 100000 or pop is NULL, listed in descending
+order by population.</p>
+<pre class="sql"><code>SELECT Name, Continent, Population FROM Country 
+  WHERE Population &lt; 100000 OR Population IS NULL ORDER BY Population DESC;</code></pre>
+<div class="knitsql-table">
+<table>
+<caption>Displaying records 1 - 10</caption>
+<thead>
+<tr class="header">
+<th align="left">Name</th>
+<th align="left">Continent</th>
+<th align="right">Population</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="left">Tonga</td>
+<td align="left">Oceania</td>
+<td align="right">99000</td>
+</tr>
+<tr class="even">
+<td align="left">Grenada</td>
+<td align="left">North America</td>
+<td align="right">94000</td>
+</tr>
+<tr class="odd">
+<td align="left">Virgin Islands, U.S.</td>
+<td align="left">North America</td>
+<td align="right">93000</td>
+</tr>
+<tr class="even">
+<td align="left">Kiribati</td>
+<td align="left">Oceania</td>
+<td align="right">83000</td>
+</tr>
+<tr class="odd">
+<td align="left">Andorra</td>
+<td align="left">Europe</td>
+<td align="right">78000</td>
+</tr>
+<tr class="even">
+<td align="left">Northern Mariana Islands</td>
+<td align="left">Oceania</td>
+<td align="right">78000</td>
+</tr>
+<tr class="odd">
+<td align="left">Seychelles</td>
+<td align="left">Africa</td>
+<td align="right">77000</td>
+</tr>
+<tr class="even">
+<td align="left">Dominica</td>
+<td align="left">North America</td>
+<td align="right">71000</td>
+</tr>
+<tr class="odd">
+<td align="left">American Samoa</td>
+<td align="left">Oceania</td>
+<td align="right">68000</td>
+</tr>
+<tr class="even">
+<td align="left">Antigua and Barbuda</td>
+<td align="left">North America</td>
+<td align="right">68000</td>
+</tr>
+</tbody>
+</table>
+</div>
+<p>Countries with pop &lt; 100000 and Continent = ‘Oceania’, listed in
+descending order by population.</p>
+<pre class="sql"><code>SELECT Name, Continent, Population FROM Country 
+  WHERE Population &lt; 100000 AND Continent = &#39;Oceania&#39; ORDER BY Population DESC;</code></pre>
+<div class="knitsql-table">
+<table>
+<caption>Displaying records 1 - 10</caption>
+<thead>
+<tr class="header">
+<th align="left">Name</th>
+<th align="left">Continent</th>
+<th align="right">Population</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="left">Tonga</td>
+<td align="left">Oceania</td>
+<td align="right">99000</td>
+</tr>
+<tr class="even">
+<td align="left">Kiribati</td>
+<td align="left">Oceania</td>
+<td align="right">83000</td>
+</tr>
+<tr class="odd">
+<td align="left">Northern Mariana Islands</td>
+<td align="left">Oceania</td>
+<td align="right">78000</td>
+</tr>
+<tr class="even">
+<td align="left">American Samoa</td>
+<td align="left">Oceania</td>
+<td align="right">68000</td>
+</tr>
+<tr class="odd">
+<td align="left">Marshall Islands</td>
+<td align="left">Oceania</td>
+<td align="right">64000</td>
+</tr>
+<tr class="even">
+<td align="left">Cook Islands</td>
+<td align="left">Oceania</td>
+<td align="right">20000</td>
+</tr>
+<tr class="odd">
+<td align="left">Palau</td>
+<td align="left">Oceania</td>
+<td align="right">19000</td>
+</tr>
+<tr class="even">
+<td align="left">Wallis and Futuna</td>
+<td align="left">Oceania</td>
+<td align="right">15000</td>
+</tr>
+<tr class="odd">
+<td align="left">Nauru</td>
+<td align="left">Oceania</td>
+<td align="right">12000</td>
+</tr>
+<tr class="even">
+<td align="left">Tuvalu</td>
+<td align="left">Oceania</td>
+<td align="right">12000</td>
+</tr>
+</tbody>
+</table>
+</div>
+<p><code>LIKE</code> operator: percent sign is a wildcard; find Names
+that have anything anything before or after ‘island’</p>
+<pre class="sql"><code>SELECT Name, Continent, Population FROM Country 
+  WHERE Name LIKE &#39;%island%&#39; ORDER BY Name;</code></pre>
+<div class="knitsql-table">
+<table>
+<caption>Displaying records 1 - 10</caption>
+<thead>
+<tr class="header">
+<th align="left">Name</th>
+<th align="left">Continent</th>
+<th align="right">Population</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="left">Bouvet Island</td>
+<td align="left">Antarctica</td>
+<td align="right">NA</td>
+</tr>
+<tr class="even">
+<td align="left">Cayman Islands</td>
+<td align="left">North America</td>
+<td align="right">38000</td>
+</tr>
+<tr class="odd">
+<td align="left">Christmas Island</td>
+<td align="left">Oceania</td>
+<td align="right">2500</td>
+</tr>
+<tr class="even">
+<td align="left">Cocos (Keeling) Islands</td>
+<td align="left">Oceania</td>
+<td align="right">600</td>
+</tr>
+<tr class="odd">
+<td align="left">Cook Islands</td>
+<td align="left">Oceania</td>
+<td align="right">20000</td>
+</tr>
+<tr class="even">
+<td align="left">Falkland Islands</td>
+<td align="left">South America</td>
+<td align="right">2000</td>
+</tr>
+<tr class="odd">
+<td align="left">Faroe Islands</td>
+<td align="left">Europe</td>
+<td align="right">43000</td>
+</tr>
+<tr class="even">
+<td align="left">Fiji Islands</td>
+<td align="left">Oceania</td>
+<td align="right">817000</td>
+</tr>
+<tr class="odd">
+<td align="left">Heard Island and McDonald Islands</td>
+<td align="left">Antarctica</td>
+<td align="right">NA</td>
+</tr>
+<tr class="even">
+<td align="left">Marshall Islands</td>
+<td align="left">Oceania</td>
+<td align="right">64000</td>
+</tr>
+</tbody>
+</table>
+</div>
+<p><code>LIKE</code> operator: all countries with ‘a’ as second
+letter</p>
+<pre class="sql"><code>SELECT Name, Continent, Population FROM Country 
+  WHERE Name LIKE &#39;_a%&#39; ORDER BY Name;</code></pre>
+<div class="knitsql-table">
+<table>
+<caption>Displaying records 1 - 10</caption>
+<thead>
+<tr class="header">
+<th align="left">Name</th>
+<th align="left">Continent</th>
+<th align="right">Population</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="left">Bahamas</td>
+<td align="left">North America</td>
+<td align="right">307000</td>
+</tr>
+<tr class="even">
+<td align="left">Bahrain</td>
+<td align="left">Asia</td>
+<td align="right">617000</td>
+</tr>
+<tr class="odd">
+<td align="left">Bangladesh</td>
+<td align="left">Asia</td>
+<td align="right">129155000</td>
+</tr>
+<tr class="even">
+<td align="left">Barbados</td>
+<td align="left">North America</td>
+<td align="right">270000</td>
+</tr>
+<tr class="odd">
+<td align="left">Cambodia</td>
+<td align="left">Asia</td>
+<td align="right">11168000</td>
+</tr>
+<tr class="even">
+<td align="left">Cameroon</td>
+<td align="left">Africa</td>
+<td align="right">15085000</td>
+</tr>
+<tr class="odd">
+<td align="left">Canada</td>
+<td align="left">North America</td>
+<td align="right">31147000</td>
+</tr>
+<tr class="even">
+<td align="left">Cape Verde</td>
+<td align="left">Africa</td>
+<td align="right">428000</td>
+</tr>
+<tr class="odd">
+<td align="left">Cayman Islands</td>
+<td align="left">North America</td>
+<td align="right">38000</td>
+</tr>
+<tr class="even">
+<td align="left">East Timor</td>
+<td align="left">Asia</td>
+<td align="right">885000</td>
+</tr>
+</tbody>
+</table>
+</div>
+<p><code>IN</code> operator: all countries in Asia or Europe</p>
+<pre class="sql"><code>SELECT Name, Continent, Population FROM Country 
+ WHERE Continent IN ( &#39;Europe&#39;, &#39;Asia&#39; ) ORDER BY Name;</code></pre>
+<div class="knitsql-table">
+<table>
+<caption>Displaying records 1 - 10</caption>
+<thead>
+<tr class="header">
+<th align="left">Name</th>
+<th align="left">Continent</th>
+<th align="right">Population</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="left">Afghanistan</td>
+<td align="left">Asia</td>
+<td align="right">22720000</td>
+</tr>
+<tr class="even">
+<td align="left">Albania</td>
+<td align="left">Europe</td>
+<td align="right">3401200</td>
+</tr>
+<tr class="odd">
+<td align="left">Andorra</td>
+<td align="left">Europe</td>
+<td align="right">78000</td>
+</tr>
+<tr class="even">
+<td align="left">Armenia</td>
+<td align="left">Asia</td>
+<td align="right">3520000</td>
+</tr>
+<tr class="odd">
+<td align="left">Austria</td>
+<td align="left">Europe</td>
+<td align="right">8091800</td>
+</tr>
+<tr class="even">
+<td align="left">Azerbaijan</td>
+<td align="left">Asia</td>
+<td align="right">7734000</td>
+</tr>
+<tr class="odd">
+<td align="left">Bahrain</td>
+<td align="left">Asia</td>
+<td align="right">617000</td>
+</tr>
+<tr class="even">
+<td align="left">Bangladesh</td>
+<td align="left">Asia</td>
+<td align="right">129155000</td>
+</tr>
+<tr class="odd">
+<td align="left">Belarus</td>
+<td align="left">Europe</td>
+<td align="right">10236000</td>
+</tr>
+<tr class="even">
+<td align="left">Belgium</td>
+<td align="left">Europe</td>
+<td align="right">10239000</td>
+</tr>
+</tbody>
+</table>
+</div>
+<p><code>SELECT DISTINCT</code>: Using the <code>SELECT DISTINCT</code>
+statement, you will get only unique results.</p>
+<pre class="sql"><code>SELECT DISTINCT Continent FROM Country;</code></pre>
+<div class="knitsql-table">
+<table>
+<caption>7 records</caption>
+<thead>
+<tr class="header">
+<th align="left">Continent</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="left">Asia</td>
+</tr>
+<tr class="even">
+<td align="left">Europe</td>
+</tr>
+<tr class="odd">
+<td align="left">North America</td>
+</tr>
+<tr class="even">
+<td align="left">Africa</td>
+</tr>
+<tr class="odd">
+<td align="left">Oceania</td>
+</tr>
+<tr class="even">
+<td align="left">South America</td>
+</tr>
+<tr class="odd">
+<td align="left">Antarctica</td>
+</tr>
+</tbody>
+</table>
+</div>
+<p>Ordering output. Order by Continent in descending order, then within
+Continent show Region in ascending order, and within Region show Name in
+ascending order.</p>
+<pre class="sql"><code>SELECT Name, Continent, Region 
+FROM Country 
+ORDER BY Continent DESC, Region, Name;</code></pre>
+<div class="knitsql-table">
+<table>
+<caption>Displaying records 1 - 10</caption>
+<thead>
+<tr class="header">
+<th align="left">Name</th>
+<th align="left">Continent</th>
+<th align="left">Region</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="left">Argentina</td>
+<td align="left">South America</td>
+<td align="left">South America</td>
+</tr>
+<tr class="even">
+<td align="left">Bolivia</td>
+<td align="left">South America</td>
+<td align="left">South America</td>
+</tr>
+<tr class="odd">
+<td align="left">Brazil</td>
+<td align="left">South America</td>
+<td align="left">South America</td>
+</tr>
+<tr class="even">
+<td align="left">Chile</td>
+<td align="left">South America</td>
+<td align="left">South America</td>
+</tr>
+<tr class="odd">
+<td align="left">Colombia</td>
+<td align="left">South America</td>
+<td align="left">South America</td>
+</tr>
+<tr class="even">
+<td align="left">Ecuador</td>
+<td align="left">South America</td>
+<td align="left">South America</td>
+</tr>
+<tr class="odd">
+<td align="left">Falkland Islands</td>
+<td align="left">South America</td>
+<td align="left">South America</td>
+</tr>
+<tr class="even">
+<td align="left">French Guiana</td>
+<td align="left">South America</td>
+<td align="left">South America</td>
+</tr>
+<tr class="odd">
+<td align="left">Guyana</td>
+<td align="left">South America</td>
+<td align="left">South America</td>
+</tr>
+<tr class="even">
+<td align="left">Paraguay</td>
+<td align="left">South America</td>
+<td align="left">South America</td>
+</tr>
+</tbody>
+</table>
+</div>
+<p>Example of a junction table.</p>
+<pre class="sql"><code>SELECT c.name AS Cust, c.zip, i.name AS Item, i.description, s.quantity AS Quan, s.price AS Price
+  FROM sale AS s
+  JOIN item AS i ON s.item_id = i.id
+  JOIN customer AS c ON s.customer_id = c.id
+  ORDER BY Cust, Item
+;</code></pre>
+<div class="knitsql-table">
+<table>
+<caption>5 records</caption>
+<colgroup>
+<col width="13%" />
+<col width="7%" />
+<col width="20%" />
+<col width="46%" />
+<col width="5%" />
+<col width="7%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th align="left">Cust</th>
+<th align="left">zip</th>
+<th align="left">Item</th>
+<th align="left">description</th>
+<th align="right">Quan</th>
+<th align="right">Price</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="left">Bill Smith</td>
+<td align="left">98765</td>
+<td align="left">Box of 64 Pixels</td>
+<td align="left">64 RGB pixels in a decorative box</td>
+<td align="right">1</td>
+<td align="right">2995</td>
+</tr>
+<tr class="even">
+<td align="left">Bob Smith</td>
+<td align="left">98765</td>
+<td align="left">Bar Code</td>
+<td align="left">Unused. In original packaging.</td>
+<td align="right">2</td>
+<td align="right">999</td>
+</tr>
+<tr class="odd">
+<td align="left">Mary Smith</td>
+<td align="left">98765</td>
+<td align="left">Box of 64 Pixels</td>
+<td align="left">64 RGB pixels in a decorative box</td>
+<td align="right">3</td>
+<td align="right">2995</td>
+</tr>
+<tr class="even">
+<td align="left">Mary Smith</td>
+<td align="left">98765</td>
+<td align="left">Box of 64 Pixels</td>
+<td align="left">64 RGB pixels in a decorative box</td>
+<td align="right">1</td>
+<td align="right">2995</td>
+</tr>
+<tr class="odd">
+<td align="left">Mary Smith</td>
+<td align="left">98765</td>
+<td align="left">Sense of Humor</td>
+<td align="left">Especially dry. Imported from England.</td>
+<td align="right">1</td>
+<td align="right">1995</td>
+</tr>
+</tbody>
+</table>
+</div>
+<p>Example of aggregate functions. Count of rows by Region.</p>
+<pre class="sql"><code>SELECT Region, COUNT(*)
+  FROM Country
+  GROUP BY Region
+;</code></pre>
+<div class="knitsql-table">
+<table>
+<caption>Displaying records 1 - 10</caption>
+<thead>
+<tr class="header">
+<th align="left">Region</th>
+<th align="right">COUNT(*)</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="left">Antarctica</td>
+<td align="right">5</td>
+</tr>
+<tr class="even">
+<td align="left">Australia and New Zealand</td>
+<td align="right">5</td>
+</tr>
+<tr class="odd">
+<td align="left">Baltic Countries</td>
+<td align="right">3</td>
+</tr>
+<tr class="even">
+<td align="left">British Islands</td>
+<td align="right">2</td>
+</tr>
+<tr class="odd">
+<td align="left">Caribbean</td>
+<td align="right">24</td>
+</tr>
+<tr class="even">
+<td align="left">Central Africa</td>
+<td align="right">9</td>
+</tr>
+<tr class="odd">
+<td align="left">Central America</td>
+<td align="right">8</td>
+</tr>
+<tr class="even">
+<td align="left">Eastern Africa</td>
+<td align="right">20</td>
+</tr>
+<tr class="odd">
+<td align="left">Eastern Asia</td>
+<td align="right">8</td>
+</tr>
+<tr class="even">
+<td align="left">Eastern Europe</td>
+<td align="right">10</td>
+</tr>
+</tbody>
+</table>
+</div>
+<pre class="sql"><code>SELECT Region, COUNT(*) AS Count  -- with alias
+  FROM Country
+  GROUP BY Region
+  ORDER BY Count DESC, Region  -- count in descending order
+;</code></pre>
+<div class="knitsql-table">
+<table>
+<caption>Displaying records 1 - 10</caption>
+<thead>
+<tr class="header">
+<th align="left">Region</th>
+<th align="right">Count</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="left">Caribbean</td>
+<td align="right">24</td>
+</tr>
+<tr class="even">
+<td align="left">Eastern Africa</td>
+<td align="right">20</td>
+</tr>
+<tr class="odd">
+<td align="left">Middle East</td>
+<td align="right">18</td>
+</tr>
+<tr class="even">
+<td align="left">Western Africa</td>
+<td align="right">17</td>
+</tr>
+<tr class="odd">
+<td align="left">Southern Europe</td>
+<td align="right">15</td>
+</tr>
+<tr class="even">
+<td align="left">South America</td>
+<td align="right">14</td>
+</tr>
+<tr class="odd">
+<td align="left">Southern and Central Asia</td>
+<td align="right">14</td>
+</tr>
+<tr class="even">
+<td align="left">Southeast Asia</td>
+<td align="right">11</td>
+</tr>
+<tr class="odd">
+<td align="left">Eastern Europe</td>
+<td align="right">10</td>
+</tr>
+<tr class="even">
+<td align="left">Polynesia</td>
+<td align="right">10</td>
+</tr>
+</tbody>
+</table>
+</div>
+<pre class="sql"><code>-- number of tracks for each album
+SELECT a.title AS Album, COUNT(t.track_number) as Tracks
+  FROM track AS t
+  JOIN album AS a
+    ON a.id = t.album_id
+  GROUP BY a.id
+  ORDER BY Tracks DESC, Album
+;</code></pre>
+<div class="knitsql-table">
+<table>
+<caption>7 records</caption>
+<thead>
+<tr class="header">
+<th align="left">Album</th>
+<th align="right">Tracks</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="left">Rubber Soul</td>
+<td align="right">14</td>
+</tr>
+<tr class="even">
+<td align="left">Birds of Fire</td>
+<td align="right">10</td>
+</tr>
+<tr class="odd">
+<td align="left">Two Men with the Blues</td>
+<td align="right">10</td>
+</tr>
+<tr class="even">
+<td align="left">Apostrophe</td>
+<td align="right">9</td>
+</tr>
+<tr class="odd">
+<td align="left">Hendrix in the West</td>
+<td align="right">9</td>
+</tr>
+<tr class="even">
+<td align="left">Live And</td>
+<td align="right">6</td>
+</tr>
+<tr class="odd">
+<td align="left">Kind of Blue</td>
+<td align="right">5</td>
+</tr>
+</tbody>
+</table>
+</div>
+<p>Just albums with 10 more tracks.</p>
+<pre class="sql"><code>-- HAVING is for aggregate data
+SELECT a.title AS Album, COUNT(t.track_number) as Tracks
+  FROM track AS t
+  JOIN album AS a
+    ON a.id = t.album_id
+  GROUP BY a.id
+  HAVING Tracks &gt;= 10
+  ORDER BY Tracks DESC, Album
+;</code></pre>
+<div class="knitsql-table">
+<table>
+<caption>3 records</caption>
+<thead>
+<tr class="header">
+<th align="left">Album</th>
+<th align="right">Tracks</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="left">Rubber Soul</td>
+<td align="right">14</td>
+</tr>
+<tr class="even">
+<td align="left">Birds of Fire</td>
+<td align="right">10</td>
+</tr>
+<tr class="odd">
+<td align="left">Two Men with the Blues</td>
+<td align="right">10</td>
+</tr>
+</tbody>
+</table>
+</div>
+<p>Albums with 10 or more tracks by the Beatles.</p>
+<pre class="sql"><code>-- WHERE is for non-aggregate data
+SELECT a.title AS Album, COUNT(t.track_number) as Tracks
+  FROM track AS t
+  JOIN album AS a
+    ON a.id = t.album_id
+  WHERE a.artist = &#39;The Beatles&#39;
+  GROUP BY a.id
+  HAVING Tracks &gt;= 10
+  ORDER BY Tracks DESC, Album
+  ;</code></pre>
+<div class="knitsql-table">
+<table>
+<caption>1 records</caption>
+<thead>
+<tr class="header">
+<th align="left">Album</th>
+<th align="right">Tracks</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="left">Rubber Soul</td>
+<td align="right">14</td>
+</tr>
+</tbody>
+</table>
+</div>
+<p>More aggregate functions.</p>
+<pre class="sql"><code>SELECT Region, AVG(Population) 
+FROM Country 
+GROUP BY Region;</code></pre>
+<div class="knitsql-table">
+<table>
+<caption>Displaying records 1 - 10</caption>
+<thead>
+<tr class="header">
+<th align="left">Region</th>
+<th align="right">AVG(Population)</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="left">Antarctica</td>
+<td align="right">NA</td>
+</tr>
+<tr class="even">
+<td align="left">Australia and New Zealand</td>
+<td align="right">4550620</td>
+</tr>
+<tr class="odd">
+<td align="left">Baltic Countries</td>
+<td align="right">2520633</td>
+</tr>
+<tr class="even">
+<td align="left">British Islands</td>
+<td align="right">31699250</td>
+</tr>
+<tr class="odd">
+<td align="left">Caribbean</td>
+<td align="right">1589167</td>
+</tr>
+<tr class="even">
+<td align="left">Central Africa</td>
+<td align="right">10628000</td>
+</tr>
+<tr class="odd">
+<td align="left">Central America</td>
+<td align="right">16902625</td>
+</tr>
+<tr class="even">
+<td align="left">Eastern Africa</td>
+<td align="right">12999947</td>
+</tr>
+<tr class="odd">
+<td align="left">Eastern Asia</td>
+<td align="right">188416000</td>
+</tr>
+<tr class="even">
+<td align="left">Eastern Europe</td>
+<td align="right">30702600</td>
+</tr>
+</tbody>
+</table>
+</div>
+<pre class="sql"><code>SELECT Region, MIN(Population), MAX(Population) 
+  FROM Country 
+  GROUP BY Region;</code></pre>
+<div class="knitsql-table">
+<table>
+<caption>Displaying records 1 - 10</caption>
+<thead>
+<tr class="header">
+<th align="left">Region</th>
+<th align="right">MIN(Population)</th>
+<th align="right">MAX(Population)</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="left">Antarctica</td>
+<td align="right">NA</td>
+<td align="right">NA</td>
+</tr>
+<tr class="even">
+<td align="left">Australia and New Zealand</td>
+<td align="right">600</td>
+<td align="right">18886000</td>
+</tr>
+<tr class="odd">
+<td align="left">Baltic Countries</td>
+<td align="right">1439200</td>
+<td align="right">3698500</td>
+</tr>
+<tr class="even">
+<td align="left">British Islands</td>
+<td align="right">3775100</td>
+<td align="right">59623400</td>
+</tr>
+<tr class="odd">
+<td align="left">Caribbean</td>
+<td align="right">8000</td>
+<td align="right">11201000</td>
+</tr>
+<tr class="even">
+<td align="left">Central Africa</td>
+<td align="right">147000</td>
+<td align="right">51654000</td>
+</tr>
+<tr class="odd">
+<td align="left">Central America</td>
+<td align="right">241000</td>
+<td align="right">98881000</td>
+</tr>
+<tr class="even">
+<td align="left">Eastern Africa</td>
+<td align="right">77000</td>
+<td align="right">62565000</td>
+</tr>
+<tr class="odd">
+<td align="left">Eastern Asia</td>
+<td align="right">473000</td>
+<td align="right">1277558000</td>
+</tr>
+<tr class="even">
+<td align="left">Eastern Europe</td>
+<td align="right">4380000</td>
+<td align="right">146934000</td>
+</tr>
+</tbody>
+</table>
+</div>
+<p>Count of distinct heads of states.</p>
+<pre class="sql"><code>SELECT COUNT(DISTINCT HeadOfState) FROM Country;</code></pre>
+<div class="knitsql-table">
+<table>
+<caption>1 records</caption>
+<thead>
+<tr class="header">
+<th align="right">COUNT(DISTINCT HeadOfState)</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="right">179</td>
+</tr>
+</tbody>
+</table>
+</div>
+<p>Example of a subselect.</p>
+<p>Which albums have tracks that are less than 90 seconds? Only shows
+album IDs.</p>
+<pre class="sql"><code>SELECT DISTINCT album_id FROM track WHERE duration &lt;= 90;</code></pre>
+<div class="knitsql-table">
+<table>
+<caption>2 records</caption>
+<thead>
+<tr class="header">
+<th align="right">album_id</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="right">11</td>
+</tr>
+<tr class="even">
+<td align="right">13</td>
+</tr>
+</tbody>
+</table>
+</div>
+<p>Use above select statement as a subselect. Note the use of
+parentheses and the IN operator.</p>
+<pre class="sql"><code>SELECT * FROM album
+  WHERE id IN (SELECT DISTINCT album_id FROM track WHERE duration &lt;= 90)
+;</code></pre>
+<div class="knitsql-table">
+<table>
+<caption>2 records</caption>
+<thead>
+<tr class="header">
+<th align="right">id</th>
+<th align="left">title</th>
+<th align="left">artist</th>
+<th align="left">label</th>
+<th align="left">released</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="right">11</td>
+<td align="left">Hendrix in the West</td>
+<td align="left">Jimi Hendrix</td>
+<td align="left">Polydor</td>
+<td align="left">1972-01-00</td>
+</tr>
+<tr class="even">
+<td align="right">13</td>
+<td align="left">Birds of Fire</td>
+<td align="left">Mahavishnu Orchestra</td>
+<td align="left">Columbia</td>
+<td align="left">1973-03-00</td>
+</tr>
+</tbody>
+</table>
+</div>
+<pre class="sql"><code>SELECT a.title AS album, a.artist, t.track_number AS seq, t.title, t.duration AS secs
+  FROM album AS a
+  JOIN (
+    SELECT DISTINCT album_id, track_number, duration, title
+      FROM track
+      WHERE duration &lt;= 90
+  ) AS t
+    ON t.album_id = a.id
+  ORDER BY a.title, t.track_number
+;</code></pre>
+<div class="knitsql-table">
+<table style="width:100%;">
+<caption>2 records</caption>
+<colgroup>
+<col width="22%" />
+<col width="23%" />
+<col width="4%" />
+<col width="43%" />
+<col width="5%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th align="left">album</th>
+<th align="left">artist</th>
+<th align="right">seq</th>
+<th align="left">title</th>
+<th align="right">secs</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="left">Birds of Fire</td>
+<td align="left">Mahavishnu Orchestra</td>
+<td align="right">4</td>
+<td align="left">Sapphire Bullets of Pure Love</td>
+<td align="right">24</td>
+</tr>
+<tr class="even">
+<td align="left">Hendrix in the West</td>
+<td align="left">Jimi Hendrix</td>
+<td align="right">6</td>
+<td align="left">Sgt. Pepper’s Lonely Hearts Club Band</td>
+<td align="right">76</td>
+</tr>
+</tbody>
+</table>
+</div>
 </div>
 </div>
 
